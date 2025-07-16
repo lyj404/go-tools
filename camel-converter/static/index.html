@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驼峰命名转换工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .copy-btn {
+            background-color: #2196F3;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        .result-container {
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>驼峰命名转换工具</h1>
+    <div class="container">
+        <div>
+            <h3>输入文本（每行一个变量名）：</h3>
+            <textarea id="inputText" placeholder="例如：
+            user_name
+            total-amount
+            ORDER_DETAIL"></textarea>
+        </div>
+        <button id="convertBtn">转换为驼峰命名</button>
+        <div class="result-container">
+            <h3>转换结果：</h3>
+            <textarea id="outputText" readonly></textarea>
+            <button id="copyBtn" class="copy-btn" disabled>复制结果</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const input = document.getElementById('inputText').value;
+            if (!input.trim()) {
+                alert('请输入要转换的内容');
+                return;
+            }
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ input })
+                });
+
+                if (!response.ok) {
+                    throw new Error('转换失败');
+                }
+
+                const data = await response.json();
+                document.getElementById('outputText').value = data.result;
+                document.getElementById('copyBtn').disabled = false;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('转换过程中出错: ' + error.message);
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const outputText = document.getElementById('outputText');
+            outputText.select();
+            document.execCommand('copy');
+
+            // 显示复制成功的反馈
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '已复制！';
+            copyBtn.style.backgroundColor = '#4CAF50';
+
+            // 2秒后恢复按钮状态
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.style.backgroundColor = '#2196F3';
+            }, 2000);
+        });
+    </script>
+</body>
+
+</html>
